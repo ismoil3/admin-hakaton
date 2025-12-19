@@ -1,3 +1,4 @@
+import axiosRequest from "@/lib/api/axios-request";
 import { create } from "zustand";
 
 interface AuthState {
@@ -9,41 +10,44 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()((set) => ({
-  token: null,
+  // Инициализируем токен сразу из localStorage
+  token: localStorage.getItem("access_token"),
   loading: false,
   error: null,
 
   login: async (phone, password) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("http://37.27.29.18:8087/api/auth/login", {
-        method: "POST",
-        headers: {
-          accept: "text/plain",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phone, password }),
+      // Используем axiosRequest вместо fetch
+      const response = await axiosRequest.post("/auth/login", {
+        phone,
+        password,
       });
 
-      const result = await response.json();
-
+      const result = response.data;
 
       if (result.isSuccess) {
-        set({ token: result.data.accessToken, loading: false });
-        localStorage.setItem("access_token", result.data.accessToken);
+        const accessToken = result.data.accessToken;
+
+        set({ token: accessToken, loading: false });
+        localStorage.setItem("access_token", accessToken);
         return true;
       } else {
-        set({ error: result.message, loading: false });
+        set({ error: result.message || "Login failed", loading: false });
         return false;
       }
-    } catch {
+    } catch (err: any) {
       set({
-        error: "Connection failed. Please try again.",
+        error:
+          err.response?.data?.message || "Connection failed. Please try again.",
         loading: false,
       });
       return false;
     }
   },
 
-  logout: () => set({ token: null, error: null }),
+  logout: () => {
+    localStorage.removeItem("access_token");
+    set({ token: null, error: null });
+  },
 }));
