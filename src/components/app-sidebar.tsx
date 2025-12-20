@@ -1,13 +1,11 @@
+import { ChevronRight, MailCheck, Users } from "lucide-react";
 import * as React from "react";
-import {
-  ChevronRight,
-  // LayoutDashboard,
-  // Route,
-  // Database,
-  Settings,
-} from "lucide-react";
 
-import { VersionSwitcher } from "@/components/version-switcher";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -19,11 +17,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Link } from "react-router-dom";
 
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
@@ -42,9 +36,19 @@ const data = {
         //   ],
         // },
         {
-          title: "Dashboard",
-          url: "#",
-          icon: Settings,
+          title: "Teams",
+          url: "/teams",
+          icon: Users,
+        },
+        {
+          title: "SMS logs",
+          url: "/sms-logs",
+          icon: MailCheck,
+        },
+        {
+          title: "Send SMS",
+          url: "/send-sms",
+          icon: MailCheck,
         },
       ],
     },
@@ -53,22 +57,21 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar variant="inset" {...props}>
-      <SidebarHeader className="pt-4">
-        <VersionSwitcher
-          versions={data.versions}
-          defaultVersion={data.versions[0]}
-        />
+    <Sidebar className="dark:bg-slate-950"   variant="inset" {...props}>
+      <SidebarHeader className="pt-4 dark:bg-slate-950">
+        <Link to="/" >
+          <img src="/logo-removebg-preview.png" className="h-15 " alt="" />
+        </Link>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="dark:bg-slate-950">
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground/70">
               {group.title}
             </SidebarGroupLabel>
             <SidebarMenu>
-              {group.items.map((item:any) => (
+              {group.items.map((item: any) => (
                 <Collapsible
                   key={item.title}
                   asChild
@@ -87,15 +90,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenu className="ml-4 border-l border-sidebar-border mt-1 gap-1 px-2">
-                            {item.subItems.map((subItem:any) => (
+                            {item.subItems.map((subItem: any) => (
                               <SidebarMenuItem key={subItem.title}>
                                 <SidebarMenuButton asChild size="sm">
-                                  <a
-                                    href={subItem.url}
+                                  <Link
+                                    to={subItem.url}
                                     className="text-muted-foreground hover:text-foreground"
                                   >
                                     <span>{subItem.title}</span>
-                                  </a>
+                                  </Link>
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
                             ))}
@@ -104,10 +107,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </>
                     ) : (
                       <SidebarMenuButton asChild tooltip={item.title}>
-                        <a href={item.url}>
+                        <Link to={item.url}>
                           {item.icon && <item.icon className="size-4" />}
                           <span className="font-medium">{item.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     )}
                   </SidebarMenuItem>

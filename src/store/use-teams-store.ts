@@ -29,7 +29,8 @@ interface TeamState {
   query: string;
   currentTeam: Team | null;
 
-  // Actions
+  sendSmsToMembers: (memberIds: string[], message: string) => Promise<boolean>;
+
   fetchTeams: () => Promise<void>;
   fetchTeamById: (id: string) => Promise<void>;
   setPage: (page: number) => void;
@@ -56,11 +57,9 @@ export const useTeemStore = create<TeamState>((set, get) => ({
     get().fetchTeams();
   },
 
-  // Получение одной команды по ID
   fetchTeamById: async (id: string) => {
     set({ loading: true, error: null, currentTeam: null });
     try {
-      // Axios автоматически склеит базовый URL, если он настроен в axiosRequest
       const response = await axiosRequest.get(`/teems/${id}`);
       const result = response.data;
 
@@ -80,7 +79,19 @@ export const useTeemStore = create<TeamState>((set, get) => ({
     }
   },
 
-  // Получение списка команд с фильтрацией и пагинацией
+  sendSmsToMembers: async (memberIds: string[], message: string) => {
+    try {
+      const response = await axiosRequest.post("/sms-mailings/members", {
+        memberIds,
+        message,
+      });
+      return response.data.isSuccess;
+    } catch (error) {
+      console.error("SMS Sending error:", error);
+      return false;
+    }
+  },
+
   fetchTeams: async () => {
     const { page, perPage, query } = get();
     set({ loading: true, error: null });
@@ -90,7 +101,7 @@ export const useTeemStore = create<TeamState>((set, get) => ({
         params: {
           Page: page,
           PerPage: perPage,
-          Query: query, // Axios сам закодирует Query
+          Query: query,
         },
       });
 

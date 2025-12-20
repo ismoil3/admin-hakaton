@@ -38,7 +38,7 @@ const LoginPage = () => {
               <ShieldCheck className="text-white" size={32} />
             </div>
             <h1 className="text-3xl font-black text-slate-800 tracking-tighter">
-              TEAM<span className="text-indigo-600">HUB</span>
+               BUILD <span className="text-indigo-600">WITH</span> AI
             </h1>
             <p className="text-slate-500 font-medium text-sm mt-1">
               Authorized Personnel Only
@@ -116,7 +116,7 @@ const LoginPage = () => {
             </button>
           </form>
 
-    
+
         </div>
       </div>
     </div>
