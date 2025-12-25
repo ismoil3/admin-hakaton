@@ -1,4 +1,4 @@
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Send,
@@ -10,6 +10,9 @@ import {
   AlertCircle,
   CheckSquare,
   Square,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
 } from "lucide-react";
 import { useTeemStore } from "@/store/use-teams-store";
 import toast from "react-hot-toast";
@@ -23,6 +26,9 @@ const SmsSendPage = () => {
     setQuery,
     sendSmsToMembers,
     error,
+    page,
+    totalPages,
+    setPage,
   } = useTeemStore();
 
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
@@ -35,13 +41,30 @@ const SmsSendPage = () => {
     const delayDebounceFn = setTimeout(() => {
       setQuery(searchTerm);
     }, 500);
-
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, setQuery]);
 
   useEffect(() => {
     fetchTeams();
-  }, [query, fetchTeams]);
+  }, [page, query, fetchTeams]);
+
+  // Хелпер для формирования диапазона страниц
+  const getPaginationRange = () => {
+    const range = [];
+    const delta = 2;
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= page - delta && i <= page + delta)
+      ) {
+        range.push(i);
+      } else if (range[range.length - 1] !== "...") {
+        range.push("...");
+      }
+    }
+    return range;
+  };
 
   const toggleTeamSelection = (teamId: string) => {
     setSelectedTeamIds((prev) =>
@@ -52,7 +75,7 @@ const SmsSendPage = () => {
   };
 
   const selectAllVisible = () => {
-    if (selectedTeamIds.length === teams.length) {
+    if (selectedTeamIds.length === teams.length && teams.length > 0) {
       setSelectedTeamIds([]);
     } else {
       setSelectedTeamIds(teams.map((t) => t.id));
@@ -65,19 +88,16 @@ const SmsSendPage = () => {
     if (!smsText.trim()) return toast.error("Введите текст сообщения");
 
     setIsSending(true);
-
     try {
       const captainIds = teams
         .filter((team) => selectedTeamIds.includes(team.id))
         .map((team) => team.members.find((m) => m.isCapitan)?.id)
         .filter((id): id is string => !!id);
 
-      if (captainIds.length === 0) {
+      if (captainIds.length === 0)
         throw new Error("В выбранных командах не найдены капитаны");
-      }
 
       const success = await sendSmsToMembers(captainIds, smsText);
-
       if (success) {
         toast.success(
           `Сообщение успешно отправлено ${captainIds.length} капитанам`
@@ -95,14 +115,14 @@ const SmsSendPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0E14] text-slate-900 dark:text-white p-6 md:p-10 font-sans transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 p-4 md:p-10 font-sans transition-colors duration-300">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* ЛЕВАЯ ЧАСТЬ: ВЫБОР КОМАНД */}
         <div className="lg:col-span-7 space-y-6">
           <div className="flex items-center justify-between">
-            <div className="flex bg-white dark:bg-[#161B22] p-1 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
-              <button className="px-6 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold shadow-md">
-                Teams
+            <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <button className="px-6 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold shadow-md transition-all">
+                Команды
               </button>
             </div>
             <button
@@ -115,12 +135,12 @@ const SmsSendPage = () => {
                 <Square size={18} />
               )}
               {selectedTeamIds.length === teams.length && teams.length > 0
-                ? "Deselect All"
-                : "Select All"}
+                ? "Убрать все"
+                : "Выбрать все"}
             </button>
           </div>
 
-          {/* Search Bar */}
+          {/* Панель поиска */}
           <div className="relative group">
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 transition-colors"
@@ -128,8 +148,8 @@ const SmsSendPage = () => {
             />
             <input
               type="text"
-              placeholder="Search teams by name..."
-              className="w-full bg-white dark:bg-[#161B22] border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-10 outline-none focus:border-indigo-500 shadow-sm transition-all dark:text-white"
+              placeholder="Поиск команды по названию..."
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl py-4 pl-12 pr-10 outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all dark:text-white dark:placeholder:text-slate-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -141,38 +161,36 @@ const SmsSendPage = () => {
             )}
           </div>
 
-          {/* Teams List Area */}
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar min-h-[300px]">
+          {/* Список команд */}
+          <div className="space-y-3 min-h-[400px]">
             {error ? (
-              <div className="flex flex-col items-center justify-center py-20 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/20">
+              <div className="flex flex-col items-center justify-center py-20 text-red-500 bg-red-50 dark:bg-red-900/10 rounded-3xl border border-red-100 dark:border-red-900/20 transition-all">
                 <AlertCircle size={48} className="mb-4" />
-                <p className="font-bold">Error loading teams</p>
-                <p className="text-sm opacity-70">{error}</p>
+                <p className="font-bold">Ошибка загрузки команд</p>
                 <button
                   onClick={() => fetchTeams()}
-                  className="mt-4 text-sm underline"
+                  className="mt-4 text-sm underline hover:no-underline"
                 >
-                  Try again
+                  Попробовать снова
                 </button>
               </div>
             ) : teams.length === 0 && !loading ? (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white dark:bg-[#161B22] rounded-3xl border border-dashed border-slate-200 dark:border-white/5">
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-600 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800 transition-all">
                 <Users size={48} className="mb-4 opacity-20" />
-                <p>No teams found</p>
+                <p>Команды не найдены</p>
               </div>
             ) : (
               teams.map((team) => {
                 const captain = team.members.find((m) => m.isCapitan);
                 const isSelected = selectedTeamIds.includes(team.id);
-
                 return (
                   <div
                     key={team.id}
                     onClick={() => toggleTeamSelection(team.id)}
                     className={`group relative flex items-center justify-between p-5 rounded-2xl border cursor-pointer transition-all ${
                       isSelected
-                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/5 shadow-md"
-                        : "border-slate-200 dark:border-white/5 bg-white dark:bg-[#161B22] hover:border-indigo-300 dark:hover:border-white/20"
+                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 shadow-md scale-[1.01]"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-indigo-300 dark:hover:border-indigo-700"
                     }`}
                   >
                     <div className="flex items-center gap-4">
@@ -180,7 +198,7 @@ const SmsSendPage = () => {
                         className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
                           isSelected
                             ? "bg-indigo-600 text-white"
-                            : "bg-slate-100 dark:bg-[#0B0E14] text-slate-400 dark:text-slate-500"
+                            : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                         }`}
                       >
                         <Users size={22} />
@@ -189,13 +207,13 @@ const SmsSendPage = () => {
                         <h4 className="font-bold text-lg group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors uppercase tracking-tight">
                           {team.name}
                         </h4>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500 font-semibold">
+                        <div className="flex items-center gap-3 mt-1 text-sm">
+                          <span className="flex items-center gap-1 text-amber-600 dark:text-amber-500 font-semibold">
                             <Crown size={12} fill="currentColor" />{" "}
-                            {captain?.fullName || "No Captain"}
+                            {captain?.fullName || "Нет капитана"}
                           </span>
                           <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest">
-                            {team.count} Members
+                            {team.count} участников
                           </span>
                         </div>
                       </div>
@@ -204,7 +222,7 @@ const SmsSendPage = () => {
                       className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${
                         isSelected
                           ? "bg-indigo-600 border-indigo-600"
-                          : "border-slate-300 dark:border-white/20"
+                          : "border-slate-300 dark:border-slate-700"
                       }`}
                     >
                       {isSelected && (
@@ -220,52 +238,102 @@ const SmsSendPage = () => {
               })
             )}
           </div>
+
+          {/* Пагинация */}
+          {!loading && totalPages > 1 && (
+            <div className="flex flex-col items-center gap-4 pt-6">
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                  className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl disabled:opacity-20 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all shadow-sm"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                <div className="flex gap-2">
+                  {getPaginationRange().map((p, i) =>
+                    p === "..." ? (
+                      <div
+                        key={`dots-${i}`}
+                        className="w-10 h-10 flex items-center justify-center text-slate-400 dark:text-slate-600"
+                      >
+                        <MoreHorizontal size={16} />
+                      </div>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p as number)}
+                        className={`w-10 h-10 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                          page === p
+                            ? "bg-indigo-600 text-white scale-110"
+                            : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:border-indigo-300 dark:hover:border-indigo-600"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(page + 1)}
+                  className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl disabled:opacity-20 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all shadow-sm"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
+                Страница {page} из {totalPages}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ: ФОРМА ОТПРАВКИ */}
+        {/* ПРАВАЯ ЧАСТЬ: ФОРМА SMS */}
         <div className="lg:col-span-5">
-          <div className="bg-white dark:bg-[#161B22] border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 sticky top-10 shadow-xl shadow-slate-200/50 dark:shadow-none">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-8 sticky top-10 shadow-xl dark:shadow-indigo-900/5 transition-all">
             <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-slate-800 dark:text-white">
-              <MessageSquare className="text-indigo-500" /> SMS Text
+              <MessageSquare className="text-indigo-500" /> Текст SMS
             </h2>
-
             <div className="space-y-6">
               <div className="relative">
                 <textarea
-                  placeholder="Type your message here..."
-                  className="w-full bg-slate-50 dark:bg-[#0B0E14] border border-slate-200 dark:border-white/5 rounded-3xl p-6 min-h-[250px] outline-none focus:border-indigo-500 transition-all resize-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                  placeholder="Введите ваше сообщение здесь..."
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 min-h-[250px] outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-600"
                   value={smsText}
                   onChange={(e) => setSmsText(e.target.value)}
                 />
                 <div
                   className={`absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-widest ${
-                    smsText.length > 160 ? "text-red-500" : "text-slate-400"
+                    smsText.length > 160
+                      ? "text-red-500"
+                      : "text-slate-400 dark:text-slate-500"
                   }`}
                 >
-                  {smsText.length} Characters{" "}
-                  {smsText.length > 160 && "(Long Message)"}
+                  {smsText.length} Символов{" "}
+                  {smsText.length > 160 && "(Длинное сообщение)"}
                 </div>
               </div>
-
               <button
                 onClick={handleSend}
                 disabled={
                   isSending || selectedTeamIds.length === 0 || !smsText.trim()
                 }
-                className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-lg shadow-indigo-200 dark:shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 dark:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-3"
               >
                 {isSending ? (
                   <Loader2 className="animate-spin" size={20} />
                 ) : (
                   <>
-                    <Send size={18} /> Send SMS
-                  </>
+                    <Send size={18} /> Отправить SMS
+                  </> 
                 )}
               </button>
-
               {selectedTeamIds.length > 0 && (
-                <p className="text-center text-[10px] text-slate-400 uppercase font-bold">
-                  Will be sent to {selectedTeamIds.length} captains
+                <p className="text-center text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">
+                  Будет отправлено {selectedTeamIds.length} капитанам
                 </p>
               )}
             </div>

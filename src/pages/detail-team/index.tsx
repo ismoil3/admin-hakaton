@@ -1,21 +1,145 @@
-import  { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Github,
   Linkedin,
-  Phone,
-  User,
+
   Loader2,
   Users,
-  Calendar,
-  Crown,
-  Quote,
-  Send,
   MessageSquare,
+  Crown,
+  Send,
+  Building2,
+  FileText,
+  AlertCircle,
+  X,
+  Info,
+  CheckCircle2,
+  Target,
+  Lightbulb,
+  AlertTriangle,
 } from "lucide-react";
 import { useTeemStore } from "@/store/use-teams-store";
 import toast from "react-hot-toast";
+
+const CASE_DETAILS = [
+  {
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNzCYn-SOFLque9taT_UwYdRpkwJrCEBnbQ&s",
+    title: "AI Listing Studio (Somon.tj)",
+    organizer: "Somon.tj",
+    problem:
+      "Создание объявлений занимает много времени, часто они неполные или неконсистентные, что снижает вовлеченность.",
+    goal: "Разработать AI-помощника для быстрого и качественного создания объявлений (Недвижимость, Авто, Товары).",
+    features: [
+      "Vision: Извлечение характеристик из фото",
+      "AI-копирайтер: Генерация заголовков и описаний",
+      "Фото-коуч: Рекомендации по качеству фото",
+      "Чеклист готовности к публикации",
+    ],
+    constraints: [
+      "Не угадывать личные данные",
+      "Не менять цены и не давать обещаний",
+    ],
+  },
+  {
+    img: "https://oriyonbonk.tj/_next/static/media/logo.a6a2c873.svg",
+    title: "Smart Deposit Challenge",
+    organizer: "Orienbank",
+    problem:
+      "Банковские калькуляторы скучные и не объясняют выгоду понятным языком.",
+    goal: "Создать умного финансового помощника, который помогает выбрать стратегию накопления и объясняет расчеты.",
+    features: [
+      "Поддержка 3 типов вкладов (классический, с капитализацией, лестничный)",
+      "AI объясняет разницу и дает рекомендации",
+      "Визуализация выгоды",
+    ],
+    constraints: [
+      "AI не считает проценты (это делает бэкенд), а только объясняет",
+    ],
+  },
+  {
+    img: "https://laklakmarket.tj/uploads/all/7mm0HfD0X5A8w91xscfaC6GunQPdP0Ll1b28rkqT.png",
+    title: "LakLak AI Assistant",
+    organizer: "LakLak Marketplace",
+    problem: "Нагрузка на саппорт и низкая конверсия оплат заказов.",
+    goal: "Виртуальный ассистент для автоматизации поддержки и помощи в завершении заказов.",
+    features: [
+      "Статус заказа и оплаты (после верификации)",
+      "Напоминание о неоплаченных заказах",
+      "Гид по доставке и правилам",
+      "Ответы на FAQ",
+    ],
+    constraints: [
+      "Языки: Русский и Таджикский",
+      "Никаких выдумок, только данные маркетплейса",
+    ],
+  },
+  {
+    img: "https://cdn.stepik.net/media/cache/images/courses/128731/cover_f61hZEg/9ae47ad6d4c068af31b8a494c0397d54.jpg",
+    title: "Прогнозирование оттока студентов",
+    organizer: "Softclub CRM",
+    problem: "Администраторы узнают об уходе студента слишком поздно.",
+    goal: "AI-модуль, прогнозирующий риск ухода и рекомендующий действия.",
+    features: [
+      "ML-модель оценки риска (Низкий/Средний/Высокий)",
+      "LLM для объяснения причин риска",
+      "Рекомендации (звонок, встреча, напоминание)",
+    ],
+  },
+  {
+    img: "https://cdn.stepik.net/media/cache/images/courses/128731/cover_f61hZEg/9ae47ad6d4c068af31b8a494c0397d54.jpg",
+    title: "AI-модуль отбора наставников",
+    organizer: "Softclub CRM",
+    problem:
+      "Сложно быстро проверить тех. уровень и педагогические навыки ментора.",
+    goal: "Модуль для стандартизированного тестирования и оценки менторов.",
+    features: [
+      "Проверка кода и теоретических знаний",
+      "Оценка умения объяснять (Teaching skill)",
+      "Автоматический отчет с рекомендацией (Green/Yellow/Red)",
+    ],
+  },
+  {
+    img: "https://yora.tj/_next/image?url=%2Flogo.webp&w=384&q=75",
+    title: "Интеллектуальный подбор клиентов",
+    organizer: "Yora.tj",
+    problem: "Низкая конверсия и долгий ручной подбор клиентов.",
+    goal: "AI-модуль для повышения конверсии и релевантности предложений.",
+    features: [
+      "Scoring модель релевантности (0-100)",
+      "Объяснение, почему клиент подходит",
+      "Рекомендация действия (письмо, звонок)",
+    ],
+  },
+  {
+    img: "https://oriyonbonk.tj/_next/static/media/logo.a6a2c873.svg",
+    title: "AI Factoring Assistant",
+    organizer: "Orienbank",
+    problem: "Предприниматели не понимают факторинг и считают его сложным.",
+    goal: "Чат-бот, который объясняет факторинг и рассчитывает условия.",
+    features: [
+      "Онбординг и расчет комиссии в чате",
+      "Простой скоринг (Зеленый/Желтый/Красный)",
+      "Объяснение условий простым языком",
+    ],
+    constraints: ["Использовать фиктивные данные", "Без сложных интеграций"],
+  },
+  {
+    img: "https://it-park.tj/wp-content/uploads/2025/03/alif-tech.png",
+    title: "Оценка стоимости жилья",
+    organizer: "Alif Tech",
+    problem: "Сложно определить адекватную рыночную цену квартиры.",
+    goal: "ML-модель для предсказания цены на основе объявлений.",
+    features: [
+      "Предобработка данных (Somon.tj)",
+      "Регрессионные модели (Linear, Random Forest, etc.)",
+      "Анализ влияния признаков на цену",
+    ],
+  },
+];
 
 const TeamDetailPage = () => {
   const { id } = useParams();
@@ -25,6 +149,9 @@ const TeamDetailPage = () => {
 
   const [smsText, setSmsText] = useState("");
   const [isSending, setIsSending] = useState(false);
+
+  // State for Modal
+  const [activeCaseModal, setActiveCaseModal] = useState<number | null>(null);
 
   useEffect(() => {
     if (id) fetchTeamById(id);
@@ -81,167 +208,360 @@ const TeamDetailPage = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
-      <nav className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors font-sans">
+      {/* --- MODAL START --- */}
+      {activeCaseModal !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setActiveCaseModal(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl shadow-2xl p-6 md:p-8 relative animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActiveCaseModal(null)}
+              className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-500"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 p-2 flex items-center justify-center shadow-sm shrink-0">
+                <img
+                  src={CASE_DETAILS[activeCaseModal].img}
+                  alt="logo"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">
+                  Case #{activeCaseModal + 1}
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                  {CASE_DETAILS[activeCaseModal].title}
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                  Организатор: {CASE_DETAILS[activeCaseModal].organizer}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="space-y-6">
+              {/* Problem & Goal */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-2xl border border-red-100 dark:border-red-900/20">
+                  <h4 className="font-bold text-red-700 dark:text-red-400 mb-2 flex items-center gap-2 text-sm">
+                    <AlertTriangle className="w-4 h-4" /> Проблема
+                  </h4>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">
+                    {CASE_DETAILS[activeCaseModal].problem}
+                  </p>
+                </div>
+                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-900/20">
+                  <h4 className="font-bold text-emerald-700 dark:text-emerald-400 mb-2 flex items-center gap-2 text-sm">
+                    <Target className="w-4 h-4" /> Цель
+                  </h4>
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">
+                    {CASE_DETAILS[activeCaseModal].goal}
+                  </p>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-500" /> Ключевой
+                  функционал
+                </h4>
+                <ul className="space-y-2">
+                  {CASE_DETAILS[activeCaseModal].features.map(
+                    (feature, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+
+              {/* Constraints */}
+              {CASE_DETAILS[activeCaseModal].constraints && (
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wide">
+                    Важные ограничения
+                  </h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-slate-500 dark:text-slate-400">
+                    {CASE_DETAILS[activeCaseModal].constraints?.map(
+                      (con, idx) => (
+                        <li key={idx}>{con}</li>
+                      )
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={() => setActiveCaseModal(null)}
+                className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl hover:opacity-90 transition-opacity"
+              >
+                Понятно
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* --- MODAL END --- */}
+
+      <nav className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium"
           >
             <ArrowLeft size={18} />
-            <span>Назад</span>
+            <span>К списку команд</span>
           </button>
           <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-100 dark:border-emerald-800">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[11px] font-bold uppercase tracking-wider">
-              Active
+              Участник Хакатона
             </span>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-4 py-10">
+      <main className="max-w-7xl mx-auto px-4 py-10">
+        {/* HEADER */}
         <header className="mb-12">
           <div className="flex items-center gap-2 text-indigo-500 dark:text-indigo-400 font-semibold text-xs uppercase tracking-widest mb-3">
-            <Users size={14} /> Командный проект
+            <Users size={14} /> Профиль команды
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
             {currentTeam.name}
           </h1>
+          <p className="text-slate-500 dark:text-slate-400">
+            Всего участников: {currentTeam.members.length}
+          </p>
         </header>
 
-        <div className="grid grid-cols-1  gap-10">
-          {/* Members Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              Участники{" "}
-              <span className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
-            </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* LEFT COLUMN (Members & Solutions) - Takes 8/12 width */}
+          <div className="lg:col-span-8 space-y-12">
+            {/* 1. MEMBERS SECTION */}
+            <section>
+              <h3 className="text-xl font-bold flex items-center gap-3 mb-6">
+                <span className="bg-indigo-100 text-indigo-600 p-2 rounded-lg">
+                  <Users size={20} />
+                </span>
+                Состав команды
+              </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {currentTeam.members.map((member) => (
-                <div
-                  key={member.id}
-                  className={`group relative bg-white dark:bg-slate-900 p-5 rounded-3xl border transition-all flex flex-col justify-between hover:shadow-lg dark:hover:shadow-indigo-900/20 ${
-                    member.isCapitan
-                      ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-900/10"
-                      : "border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700"
-                  }`}
-                >
-                  <div>
-                    {member.isCapitan && (
-                      <div className="absolute -top-3 -right-2 bg-amber-500 text-white text-[10px] font-black px-2 py-1 rounded-lg flex items-center gap-1 shadow-lg shadow-amber-200 dark:shadow-none uppercase tracking-tighter">
-                        <Crown size={10} fill="white" /> Captain
-                      </div>
-                    )}
-                    <div className="flex items-center gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {currentTeam.members.map((member) => (
+                  <div
+                    key={member.id}
+                    className={`group relative bg-white dark:bg-slate-900 p-5 rounded-2xl border transition-all hover:shadow-lg dark:hover:shadow-indigo-900/10 ${
+                      member.isCapitan
+                        ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30"
+                        : "border-slate-200 dark:border-slate-800"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
                       <div
-                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-bold ${
                           member.isCapitan
-                            ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
+                            ? "bg-amber-100 text-amber-600"
+                            : "bg-slate-100 text-slate-500"
                         }`}
                       >
-                        <User size={20} />
+                        {member.fullName[0]}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-slate-800 dark:text-slate-100 leading-tight">
-                          {member.fullName}
-                        </h4>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-slate-900 dark:text-white truncate">
+                            {member.fullName}
+                          </h4>
+                          {member.isCapitan && (
+                            <Crown
+                              size={14}
+                              className="text-amber-500 fill-amber-500"
+                            />
+                          )}
+                        </div>
+
                         <a
                           href={`tel:${member.phone}`}
-                          className="text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 mt-1"
+                          className="text-sm text-slate-500 hover:text-indigo-600 block mb-3"
                         >
-                          <Phone size={10} /> {member.phone}
+                          {member.phone}
                         </a>
+
+                        <div className="flex gap-3">
+                          {member.githubLink && (
+                            <a
+                              href={member.githubLink}
+                              target="_blank"
+                              className="text-slate-400 hover:text-black dark:hover:text-white transition-colors"
+                            >
+                              <Github size={18} />
+                            </a>
+                          )}
+                          {member.linkedinLink && (
+                            <a
+                              href={`https://${member.linkedinLink}`}
+                              target="_blank"
+                              className="text-slate-400 hover:text-blue-600 transition-colors"
+                            >
+                              <Linkedin size={18} />
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
+
                     {member.fullTimeParticipationNote && (
-                      <div className="mb-6 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100/50 dark:border-slate-700/50 relative overflow-hidden">
-                        <Quote
-                          size={12}
-                          className="absolute top-2 right-2 text-slate-200 dark:text-slate-700"
-                        />
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed italic pr-4">
-                          {member.fullTimeParticipationNote}
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/50">
+                        <p className="text-xs text-slate-500 italic">
+                          "{member.fullTimeParticipationNote}"
                         </p>
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2 pt-4 border-t border-slate-50 dark:border-slate-800">
-                    <a
-                      href={member.githubLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 py-2 flex justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-400 hover:bg-slate-900 dark:hover:bg-slate-700 hover:text-white transition-all rounded-xl"
+                ))}
+              </div>
+            </section>
+
+            {/* 2. SOLUTIONS (STAGES) SECTION - JUROR VIEW */}
+            <section>
+              <h3 className="text-xl font-bold flex items-center gap-3 mb-6">
+                <span className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+                  <FileText size={20} />
+                </span>
+                Решения кейсов (Для Жюри)
+              </h3>
+
+              <div className="space-y-6">
+                {currentTeam.stages.map((stage, idx) => {
+                  const caseDetail = CASE_DETAILS[idx] || {
+                    title: `Case #${idx + 1}`,
+                    organizer: "Unknown",
+                    img: "",
+                    problem: "Описание недоступно",
+                    goal: "",
+                    features: [],
+                  };
+
+                  return (
+                    <div
+                      key={stage.id || idx}
+                      className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                     >
-                      <Github size={16} />
-                    </a>
-                    <a
-                      href={`https://${member.linkedinLink}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 py-2 flex justify-center bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all rounded-xl"
-                    >
-                      <Linkedin size={16} />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
+                      {/* Case Header */}
+                      <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0">
+                            {caseDetail.img ? (
+                              <img
+                                src={caseDetail.img}
+                                alt="logo"
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <Building2 className="text-slate-300" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                              Case 0{idx + 1} • {caseDetail.organizer}
+                            </div>
+                            <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-none">
+                              {caseDetail.title}
+                            </h4>
+                          </div>
+                        </div>
+
+                        {/* Trigger Modal Button */}
+                        <button
+                          onClick={() => setActiveCaseModal(idx)}
+                          className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 px-4 py-2 rounded-full transition-colors flex items-center gap-2"
+                        >
+                          <Info size={14} />
+                          Подробнее о кейсе
+                        </button>
+                      </div>
+
+                      {/* The Solution Answer */}
+                      <div className="p-6">
+                        <h5 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                          Решение команды:
+                        </h5>
+
+                        {stage.content ? (
+                          <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-5">
+                            <p className="text-slate-700 dark:text-indigo-100 whitespace-pre-wrap leading-relaxed">
+                              {stage.content}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-4 rounded-xl border border-amber-100">
+                            <AlertCircle size={18} />
+                            <span className="text-sm font-medium">
+                              Команда не предоставила ответ на этот кейс.
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           </div>
 
-          {/* Sidebar Column */}
-          <div className="space-y-6">
-            {/* SMS TO CAPTAIN SECTION */}
-            <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-6 shadow-sm">
+          {/* RIGHT COLUMN (Sidebar Actions) - Takes 4/12 width */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* SMS WIDGET */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sticky top-24 shadow-sm">
               <h3 className="text-sm font-bold uppercase text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-2">
-                <MessageSquare size={16} /> SMS Капитану
+                <MessageSquare size={16} /> Связь с капитаном
               </h3>
-              <textarea
-                value={smsText}
-                onChange={(e) => setSmsText(e.target.value)}
-                placeholder="Текст сообщения..."
-                className="w-full min-h-[100px] bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-4 text-sm outline-none focus:border-indigo-300 dark:focus:border-indigo-500 transition-all resize-none mb-4 text-slate-900 dark:text-slate-100 placeholder-slate-400"
-              />
+
+              <div className="mb-4">
+                <p className="text-xs text-slate-500 mb-2">
+                  Отправить SMS уведомление на телефон капитана.
+                </p>
+                <textarea
+                  value={smsText}
+                  onChange={(e) => setSmsText(e.target.value)}
+                  placeholder="Например: Подойдите к стойке менторов..."
+                  className="w-full min-h-[120px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none text-slate-900 dark:text-white placeholder-slate-400"
+                />
+              </div>
+
               <button
                 onClick={handleSendToCaptain}
                 disabled={isSending}
-                className="w-full py-3 bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-indigo-100 dark:shadow-none"
+                className="w-full py-3.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-500 disabled:opacity-70 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
               >
                 {isSending ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 size={18} className="animate-spin" />
                 ) : (
-                  <Send size={16} />
+                  <Send size={18} />
                 )}
-                Отправить капитану
+                Отправить SMS
               </button>
-            </section>
-
-            {/* CASE SECTION */}
-            <div className="bg-slate-900 dark:bg-slate-900 border dark:border-slate-800 rounded-[2rem] p-8 text-white sticky top-24">
-              <h3 className="text-sm font-bold uppercase text-indigo-400 mb-8 flex items-center gap-2">
-                <Calendar size={16} /> Case
-              </h3>
-              <div className="space-y-6">
-                {currentTeam.stages.map((stage, idx) => (
-                  <div
-                    key={stage.id}
-                    className="relative pl-6 border-l border-white/10 dark:border-white/5 pb-2"
-                  >
-                    <div className="absolute -left-[4.5px] top-1 w-2 h-2 rounded-full  shadow-[0_0_8px_rgba(99,102,241,0.6)]">
-                      <span className="absolute -top-2"> {idx + 1}</span>
-                    </div>
-                    <p className="text-sm font-medium text-slate-200 leading-snug">
-                      {stage.content}
-                    </p>
-                    <p className="text-[10px] text-slate-500 uppercase mt-2 font-bold tracking-wider">
-                      Case 0{idx + 1}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
+            \[
           </div>
         </div>
       </main>
