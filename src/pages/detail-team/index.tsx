@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Github,
   Linkedin,
-
   Loader2,
   Users,
   MessageSquare,
@@ -561,7 +560,6 @@ const TeamDetailPage = () => {
                 Отправить SMS
               </button>
             </div>
-            \[
           </div>
         </div>
       </main>
