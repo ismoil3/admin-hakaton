@@ -20,21 +20,10 @@ import {
 import { Link } from "react-router-dom";
 
 const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
       title: "Platform",
       items: [
-        // {
-        //   title: "Building Application",
-        //   url: "#",
-        //   icon: LayoutDashboard,
-        //   isActive: true,
-        //   subItems: [
-        //     { title: "Routing", url: "#", icon: Route },
-        //     { title: "Data Fetching", url: "#", icon: Database },
-        //   ],
-        // },
         {
           title: "Teams",
           url: "/teams",
@@ -57,17 +46,19 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar className="dark:bg-slate-950"   variant="inset" {...props}>
-      <SidebarHeader className="pt-4 dark:bg-slate-950">
-        <Link to="/" >
-          <img src="/logo-removebg-preview.png" className="h-15 " alt="" />
+    <Sidebar variant="inset" {...props}>
+      <SidebarHeader className="h-16 flex items-center justify-center border-b border-sidebar-border/50">
+        <Link to="/" className="flex items-center gap-2 font-semibold">
+           {/* Ensure logo looks good on dark/light by possibly inverting colors via CSS if needed,
+               or just use the image as is if it has a transparent bg */}
+          <img src="/logo-removebg-preview.png" className="h-10 w-auto object-contain" alt="Logo" />
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="dark:bg-slate-950">
+      <SidebarContent>
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
-            <SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground/70">
+            <SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               {group.title}
             </SidebarGroupLabel>
             <SidebarMenu>
@@ -108,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     ) : (
                       <SidebarMenuButton asChild tooltip={item.title}>
                         <Link to={item.url}>
-                          {item.icon && <item.icon className="size-4" />}
+                          {item.icon && <item.icon className="size-4 opacity-70 group-hover/menu-item:opacity-100" />}
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
