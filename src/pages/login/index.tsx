@@ -102,6 +102,7 @@ const LoginPage = () => {
               type="submit"
               className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 group disabled:opacity-70 active:scale-[0.98]"
             >
+              
               {loading ? (
                 <Loader2 className="animate-spin" size={20} />
               ) : (
