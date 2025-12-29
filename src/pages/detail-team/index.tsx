@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -11,7 +11,6 @@ import {
   MessageSquare,
   Crown,
   Send,
-  Building2,
   FileText,
   AlertCircle,
   X,
@@ -20,10 +19,12 @@ import {
   Target,
   Lightbulb,
   AlertTriangle,
+  Terminal,
 } from "lucide-react";
 import { useTeemStore } from "@/store/use-teams-store";
 import toast from "react-hot-toast";
 
+// ... (CASE_DETAILS array-ro hamon tavr mon, tagyir dodan lozim nest) ...
 const CASE_DETAILS = [
   {
     img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNzCYn-SOFLque9taT_UwYdRpkwJrCEBnbQ&s",
@@ -155,6 +156,26 @@ const TeamDetailPage = () => {
   useEffect(() => {
     if (id) fetchTeamById(id);
   }, [id, fetchTeamById]);
+
+  // LOGIC TO FIND THE SELECTED CASE
+  // Mo inja stage-ro mejobem ki content dorad
+  const selectedStageData = useMemo(() => {
+    if (!currentTeam || !currentTeam.stages) return null;
+
+    // Find the index of the stage that has content
+    const index = currentTeam.stages.findIndex(
+      (s) => s.content && s.content.trim().length > 0
+    );
+
+    if (index !== -1) {
+      return {
+        stage: currentTeam.stages[index],
+        caseDetail: CASE_DETAILS[index],
+        index: index,
+      };
+    }
+    return null;
+  }, [currentTeam]);
 
   const handleSendToCaptain = async () => {
     const captain = currentTeam?.members.find((m) => m.isCapitan);
@@ -368,19 +389,17 @@ const TeamDetailPage = () => {
                 {currentTeam.members.map((member) => (
                   <div
                     key={member.id}
-                    className={`group relative bg-white dark:bg-slate-900 p-5 rounded-2xl border transition-all hover:shadow-lg dark:hover:shadow-indigo-900/10 ${
-                      member.isCapitan
+                    className={`group relative bg-white dark:bg-slate-900 p-5 rounded-2xl border transition-all hover:shadow-lg dark:hover:shadow-indigo-900/10 ${member.isCapitan
                         ? "border-amber-200 dark:border-amber-900/50 bg-amber-50/30"
                         : "border-slate-200 dark:border-slate-800"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start gap-4">
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-bold ${
-                          member.isCapitan
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-bold ${member.isCapitan
                             ? "bg-amber-100 text-amber-600"
                             : "bg-slate-100 text-slate-500"
-                        }`}
+                          }`}
                       >
                         {member.fullName[0]}
                       </div>
@@ -440,90 +459,89 @@ const TeamDetailPage = () => {
               </div>
             </section>
 
-            {/* 2. SOLUTIONS (STAGES) SECTION - JUROR VIEW */}
+            {/* 2. SOLUTIONS (SELECTED CASE ONLY) - JUROR VIEW */}
             <section>
               <h3 className="text-xl font-bold flex items-center gap-3 mb-6">
                 <span className="bg-purple-100 text-purple-600 p-2 rounded-lg">
                   <FileText size={20} />
                 </span>
-                Решения кейсов (Для Жюри)
+                Решение кейса
               </h3>
 
-              <div className="space-y-6">
-                {currentTeam.stages.map((stage, idx) => {
-                  const caseDetail = CASE_DETAILS[idx] || {
-                    title: `Case #${idx + 1}`,
-                    organizer: "Unknown",
-                    img: "",
-                    problem: "Описание недоступно",
-                    goal: "",
-                    features: [],
-                  };
-
-                  return (
-                    <div
-                      key={stage.id || idx}
-                      className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      {/* Case Header */}
-                      <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0">
-                            {caseDetail.img ? (
-                              <img
-                                src={caseDetail.img}
-                                alt="logo"
-                                className="w-full h-full object-contain"
-                              />
-                            ) : (
-                              <Building2 className="text-slate-300" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">
-                              Case 0{idx + 1} • {caseDetail.organizer}
-                            </div>
-                            <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-none">
-                              {caseDetail.title}
-                            </h4>
-                          </div>
-                        </div>
-
-                        {/* Trigger Modal Button */}
-                        <button
-                          onClick={() => setActiveCaseModal(idx)}
-                          className="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 px-4 py-2 rounded-full transition-colors flex items-center gap-2"
-                        >
-                          <Info size={14} />
-                          Подробнее о кейсе
-                        </button>
+              {/* CHECK IF SOLUTION EXISTS */}
+              {selectedStageData ? (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-indigo-500/20 dark:border-indigo-500/30 overflow-hidden shadow-xl shadow-indigo-500/5">
+                  {/* Active Case Header */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/30 dark:to-slate-900 px-6 py-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 border-b border-indigo-100 dark:border-indigo-900/50">
+                    <div className="flex items-center gap-5">
+                      <div className="w-16 h-16 bg-white rounded-2xl border border-indigo-100 p-2 flex items-center justify-center shrink-0 shadow-sm">
+                        <img
+                          src={selectedStageData.caseDetail.img}
+                          alt="logo"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
-
-                      {/* The Solution Answer */}
-                      <div className="p-6">
-                        <h5 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                          Решение команды:
-                        </h5>
-
-                        {stage.content ? (
-                          <div className="bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 rounded-2xl p-5">
-                            <p className="text-slate-700 dark:text-indigo-100 whitespace-pre-wrap leading-relaxed">
-                              {stage.content}
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-4 rounded-xl border border-amber-100">
-                            <AlertCircle size={18} />
-                            <span className="text-sm font-medium">
-                              Команда не предоставила ответ на этот кейс.
-                            </span>
-                          </div>
-                        )}
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                            Selected
+                          </span>
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            Case #{selectedStageData.index + 1}
+                          </span>
+                        </div>
+                        <h4 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
+                          {selectedStageData.caseDetail.title}
+                        </h4>
+                        <p className="text-sm text-slate-500 mt-1">
+                          {selectedStageData.caseDetail.organizer}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <button
+                      onClick={() =>
+                        setActiveCaseModal(selectedStageData.index)
+                      }
+                      className="text-xs font-bold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+                    >
+                      <Info size={16} />
+                      Условия кейса
+                    </button>
+                  </div>
+
+                  {/* The Solution Answer */}
+                  <div className="p-8">
+                    <h5 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
+                      <Terminal size={16} className="text-indigo-500" />
+                      Техническое решение команды:
+                    </h5>
+
+                    <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 relative group">
+                      <div className="absolute top-4 right-4 text-slate-300">
+                        <FileText size={24} />
+                      </div>
+                      <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed font-mono text-sm">
+                        {selectedStageData.stage.content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // FALLBACK IF NO SOLUTION FOUND
+                <div className="flex flex-col items-center justify-center py-12 px-4 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-slate-400">
+                    <AlertCircle size={32} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+                    Решение не найдено
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-sm">
+                    Эта команда зарегистрировалась, но еще не предоставила
+                    описание решения ни для одного кейса.
+                  </p>
+                </div>
+              )}
             </section>
           </div>
 
