@@ -45,6 +45,7 @@ export default function Layout() {
               variant="destructive"
               size="sm"
               onClick={handleLogout}
+              className="curso"
             >
               Logout
             </Button>

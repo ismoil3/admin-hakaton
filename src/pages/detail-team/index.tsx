@@ -24,7 +24,7 @@ import {
 import { useTeemStore } from "@/store/use-teams-store";
 import toast from "react-hot-toast";
 
-// ... (CASE_DETAILS array-ro hamon tavr mon, tagyir dodan lozim nest) ...
+// ... (CASE_DETAILS бе тағйирот) ...
 const CASE_DETAILS = [
   {
     img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNzCYn-SOFLque9taT_UwYdRpkwJrCEBnbQ&s",
@@ -157,25 +157,20 @@ const TeamDetailPage = () => {
     if (id) fetchTeamById(id);
   }, [id, fetchTeamById]);
 
-  // LOGIC TO FIND THE SELECTED CASE
-  // Mo inja stage-ro mejobem ki content dorad
-  const selectedStageData = useMemo(() => {
-    if (!currentTeam || !currentTeam.stages) return null;
+  // --- LOGIC CHANGE START: Find ALL selected cases, not just one ---
+  const activeSolutions = useMemo(() => {
+    if (!currentTeam || !currentTeam.stages) return [];
 
-    // Find the index of the stage that has content
-    const index = currentTeam.stages.findIndex(
-      (s) => s.content && s.content.trim().length > 0
-    );
-
-    if (index !== -1) {
-      return {
-        stage: currentTeam.stages[index],
+    // Map through all stages, combine with case details, then filter by content presence
+    return currentTeam.stages
+      .map((stage, index) => ({
+        stage,
         caseDetail: CASE_DETAILS[index],
-        index: index,
-      };
-    }
-    return null;
+        index,
+      }))
+      .filter((item) => item.stage.content && item.stage.content.trim().length > 0);
   }, [currentTeam]);
+  // --- LOGIC CHANGE END ---
 
   const handleSendToCaptain = async () => {
     const captain = currentTeam?.members.find((m) => m.isCapitan);
@@ -459,73 +454,78 @@ const TeamDetailPage = () => {
               </div>
             </section>
 
-            {/* 2. SOLUTIONS (SELECTED CASE ONLY) - JUROR VIEW */}
+            {/* 2. SOLUTIONS (ALL SELECTED CASES) */}
             <section>
               <h3 className="text-xl font-bold flex items-center gap-3 mb-6">
                 <span className="bg-purple-100 text-purple-600 p-2 rounded-lg">
                   <FileText size={20} />
                 </span>
-                Решение кейса
+                Решения кейсов
               </h3>
 
-              {/* CHECK IF SOLUTION EXISTS */}
-              {selectedStageData ? (
-                <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-indigo-500/20 dark:border-indigo-500/30 overflow-hidden shadow-xl shadow-indigo-500/5">
-                  {/* Active Case Header */}
-                  <div className="bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/30 dark:to-slate-900 px-6 py-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 border-b border-indigo-100 dark:border-indigo-900/50">
-                    <div className="flex items-center gap-5">
-                      <div className="w-16 h-16 bg-white rounded-2xl border border-indigo-100 p-2 flex items-center justify-center shrink-0 shadow-sm">
-                        <img
-                          src={selectedStageData.caseDetail.img}
-                          alt="logo"
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider">
-                            Selected
-                          </span>
-                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Case #{selectedStageData.index + 1}
-                          </span>
-                        </div>
-                        <h4 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
-                          {selectedStageData.caseDetail.title}
-                        </h4>
-                        <p className="text-sm text-slate-500 mt-1">
-                          {selectedStageData.caseDetail.organizer}
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        setActiveCaseModal(selectedStageData.index)
-                      }
-                      className="text-xs font-bold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+              {/* RENDER LIST OF SOLUTIONS */}
+              {activeSolutions.length > 0 ? (
+                <div className="space-y-8">
+                  {activeSolutions.map((solItem) => (
+                    <div
+                      key={solItem.index}
+                      className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-indigo-500/20 dark:border-indigo-500/30 overflow-hidden shadow-xl shadow-indigo-500/5"
                     >
-                      <Info size={16} />
-                      Условия кейса
-                    </button>
-                  </div>
+                      {/* Active Case Header */}
+                      <div className="bg-gradient-to-r from-indigo-50 to-white dark:from-indigo-950/30 dark:to-slate-900 px-6 py-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-4 border-b border-indigo-100 dark:border-indigo-900/50">
+                        <div className="flex items-center gap-5">
+                          <div className="w-16 h-16 bg-white rounded-2xl border border-indigo-100 p-2 flex items-center justify-center shrink-0 shadow-sm">
+                            <img
+                              src={solItem.caseDetail.img}
+                              alt="logo"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider">
+                                Selected
+                              </span>
+                              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                Case #{solItem.index + 1}
+                              </span>
+                            </div>
+                            <h4 className="text-xl font-bold text-slate-900 dark:text-white leading-none">
+                              {solItem.caseDetail.title}
+                            </h4>
+                            <p className="text-sm text-slate-500 mt-1">
+                              {solItem.caseDetail.organizer}
+                            </p>
+                          </div>
+                        </div>
 
-                  {/* The Solution Answer */}
-                  <div className="p-8">
-                    <h5 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
-                      <Terminal size={16} className="text-indigo-500" />
-                      Техническое решение команды:
-                    </h5>
-
-                    <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 relative group">
-                      <div className="absolute top-4 right-4 text-slate-300">
-                        <FileText size={24} />
+                        <button
+                          onClick={() => setActiveCaseModal(solItem.index)}
+                          className="text-xs font-bold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-sm"
+                        >
+                          <Info size={16} />
+                          Условия кейса
+                        </button>
                       </div>
-                      <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed font-mono text-sm">
-                        {selectedStageData.stage.content}
-                      </p>
+
+                      {/* The Solution Answer */}
+                      <div className="p-8">
+                        <h5 className="text-sm font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
+                          <Terminal size={16} className="text-indigo-500" />
+                          Техническое решение команды:
+                        </h5>
+
+                        <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 relative group">
+                          <div className="absolute top-4 right-4 text-slate-300">
+                            <FileText size={24} />
+                          </div>
+                          <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed font-mono text-sm">
+                            {solItem.stage.content}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               ) : (
                 // FALLBACK IF NO SOLUTION FOUND
