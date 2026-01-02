@@ -431,7 +431,7 @@ const TeamDetailPage = () => {
                           )}
                           {member.linkedinLink && (
                             <a
-                              href={`https://${member.linkedinLink}`}
+                              href={`${member.linkedinLink}`}
                               target="_blank"
                               className="text-slate-400 hover:text-blue-600 transition-colors"
                             >
