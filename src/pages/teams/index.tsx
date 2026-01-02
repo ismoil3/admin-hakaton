@@ -13,8 +13,45 @@ import {
   MoreHorizontal,
   AlertCircle,
   RefreshCw,
+  Target, // Илова шуд
 } from "lucide-react";
 import { useTeemStore } from "@/store/use-teams-store";
+
+// 1. Маълумоти мухтасар дар бораи Кейсҳо (Барои нишон додан дар рӯйхат)
+const CASE_INFO = [
+  {
+    title: "AI Listing Studio",
+    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNzCYn-SOFLque9taT_UwYdRpkwJrCEBnbQ&s",
+  },
+  {
+    title: "Smart Deposit",
+    img: "https://oriyonbonk.tj/_next/static/media/logo.a6a2c873.svg",
+  },
+  {
+    title: "LakLak Assistant",
+    img: "https://laklakmarket.tj/uploads/all/7mm0HfD0X5A8w91xscfaC6GunQPdP0Ll1b28rkqT.png",
+  },
+  {
+    title: "Churn Prediction",
+    img: "https://cdn.stepik.net/media/cache/images/courses/128731/cover_f61hZEg/9ae47ad6d4c068af31b8a494c0397d54.jpg",
+  },
+  {
+    title: "Mentor Selection",
+    img: "https://cdn.stepik.net/media/cache/images/courses/128731/cover_f61hZEg/9ae47ad6d4c068af31b8a494c0397d54.jpg",
+  },
+  {
+    title: "Client Matching",
+    img: "https://yora.tj/_next/image?url=%2Flogo.webp&w=384&q=75",
+  },
+  {
+    title: "Factoring AI",
+    img: "https://oriyonbonk.tj/_next/static/media/logo.a6a2c873.svg",
+  },
+  {
+    title: "House Pricing",
+    img: "https://it-park.tj/wp-content/uploads/2025/03/alif-tech.png",
+  },
+];
 
 const TeamPage = () => {
   const navigate = useNavigate();
@@ -35,6 +72,18 @@ const TeamPage = () => {
   useEffect(() => {
     fetchTeams();
   }, [page, query, fetchTeams]);
+
+  // Логика барои ёфтани кейси интихобшуда
+  const getTeamCase = (team: any) => {
+    if (!team.stages) return null;
+    const index = team.stages.findIndex(
+      (s: any) => s.content && s.content.trim().length > 0
+    );
+    if (index !== -1 && CASE_INFO[index]) {
+      return { ...CASE_INFO[index], id: index + 1 };
+    }
+    return null;
+  };
 
   const getPaginationRange = () => {
     const range = [];
@@ -170,6 +219,10 @@ const TeamPage = () => {
                       <th className="px-8 py-4 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                         Команда
                       </th>
+                      {/* Сутуни нав барои кейс */}
+                      <th className="px-8 py-4 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        Проект (Кейс)
+                      </th>
                       <th className="px-8 py-4 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">
                         Участники
                       </th>
@@ -179,84 +232,139 @@ const TeamPage = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                    {teams.map((team) => (
-                      <tr
-                        key={team.id}
-                        className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors group"
-                      >
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                              {team.name.charAt(0)}
+                    {teams.map((team) => {
+                      const activeCase = getTeamCase(team);
+
+                      return (
+                        <tr
+                          key={team.id}
+                          className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors group"
+                        >
+                          <td className="px-8 py-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold group-hover:bg-indigo-600 dark:group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                                {team.name.charAt(0)}
+                              </div>
+                              <span className="font-bold text-slate-700 dark:text-slate-200">
+                                {team.name}
+                              </span>
                             </div>
-                            <span className="font-bold text-slate-700 dark:text-slate-200">
-                              {team.name}
+                          </td>
+                          {/* Нишон додани кейс дар ҷадвал */}
+                          <td className="px-8 py-5">
+                            {activeCase ? (
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={activeCase.img}
+                                  alt=""
+                                  className="w-6 h-6 object-contain rounded-md bg-white border border-slate-100"
+                                />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                    {activeCase.title}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    Case #{activeCase.id}
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">
+                                Не выбрано
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-8 py-5 text-center">
+                            <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-lg text-xs font-bold">
+                              {team.count} чел.
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-8 py-5 text-center">
-                          <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-lg text-xs font-bold">
-                            {team.count} чел.
-                          </span>
-                        </td>
-                        <td className="px-8 py-5 text-right">
-                          <button
-                            onClick={() => navigate(`/teams/${team.id}`)}
-                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-bold transition-colors"
-                          >
-                            Просмотр
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                            <button
+                              onClick={() => navigate(`/teams/${team.id}`)}
+                              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-bold transition-colors"
+                            >
+                              Просмотр
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
-                {teams.map((team) => (
-                  <div
-                    key={team.id}
-                    onClick={() => navigate(`/teams/${team.id}`)}
-                    className="cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all group relative flex flex-col justify-between min-h-[220px]"
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider">
-                          Active
+                {teams.map((team) => {
+                  const activeCase = getTeamCase(team);
+
+                  return (
+                    <div
+                      key={team.id}
+                      onClick={() => navigate(`/teams/${team.id}`)}
+                      className="cursor-pointer bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl dark:hover:shadow-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-500/50 transition-all group relative flex flex-col justify-between min-h-[220px]"
+                    >
+                      <div>
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                            Active
+                          </div>
+                          <div className="flex -space-x-2">
+                            {team.members.slice(0, 4).map((m: any, i: number) => (
+                              <div
+                                key={i}
+                                title={m.fullName}
+                                className={`w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${
+                                  m.isCapitan
+                                    ? "bg-amber-500 z-10"
+                                    : "bg-slate-400 dark:bg-slate-600"
+                                }`}
+                              >
+                                {m.isCapitan ? (
+                                  <Crown size={12} fill="white" />
+                                ) : (
+                                  m.fullName.charAt(0)
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex -space-x-2">
-                          {team.members.slice(0, 4).map((m: any, i: number) => (
-                            <div
-                              key={i}
-                              title={m.fullName}
-                              className={`w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] font-bold text-white shadow-sm ${
-                                m.isCapitan
-                                  ? "bg-amber-500 z-10"
-                                  : "bg-slate-400 dark:bg-slate-600"
-                              }`}
-                            >
-                              {m.isCapitan ? (
-                                <Crown size={12} fill="white" />
-                              ) : (
-                                m.fullName.charAt(0)
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          {team.name}
+                        </h3>
+
+                        {/* Нишон додани Кейс дар Карточка */}
+                        <div className="mt-4 mb-2">
+                            {activeCase ? (
+                                <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-500/30">
+                                    <img src={activeCase.img} className="w-5 h-5 object-contain" alt="" />
+                              <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200">{activeCase.title}</span>
+                              {activeCase.id && (
+                                  <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
+                                      Case #{activeCase.id}
+                                  </span>
                               )}
-                            </div>
-                          ))}
+                                </div>
+                            ) : (
+                                <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700">
+                                    <Target size={14} className="text-slate-400"/>
+                                    <span className="text-xs font-medium text-slate-400">Кейс не выбран</span>
+                                </div>
+                            )}
                         </div>
                       </div>
-                      <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                        {team.name}
-                      </h3>
-                      <p className="text-slate-400 dark:text-slate-500 text-xs font-medium mb-6">
-                        Проект включает {team.count} участников.
-                      </p>
+
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                         <p className="text-slate-400 dark:text-slate-500 text-xs font-medium">
+                          {team.count} участников
+                        </p>
+                        <div className="flex items-center text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                            Details <ExternalLink size={14} />
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                      Open details <ExternalLink size={14} />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
